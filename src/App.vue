@@ -26,12 +26,44 @@ export default {
     }
   },
   methods: {
+    roll(sides) {
+      return Math.floor(Math.random() * sides) + 1
+    },
     rollD20() {
-      this.result = Math.floor(Math.random() * 20) + 1
+      this.result = this.roll(20)
+    },
+    parseDice(notation) {
+      const rgx = /^(\d*)d(\d+)([+-]\d+)?$/
+      const match = notation.match(rgx)
+
+      if (!match) throw new Error("Invalid dice notation")
+
+      return {
+        amount: match[1] ? parseInt(match[1], 10) : 1,
+        sides: parseInt(match[2], 10),
+        mod: match[3] ? parseInt(match[3], 10) : 0
+      }
     }
   },
   mounted() {
-    this.rollD20()
+    const params = new URLSearchParams(window.location.search)
+
+    if (params.has('q')) {
+      const { amount, sides, mod } = this.parseDice(params.get('q'))
+
+      let total = 0
+      for (let i = 0; i < amount; i++) {
+        const rolled = this.roll(sides)
+
+        console.info(`[${i}] rolled ${rolled}`)
+        total += rolled
+      }
+
+      this.result = total + mod
+    }
+    else {
+      this.rollD20()
+    }
   }
 }
 </script>
